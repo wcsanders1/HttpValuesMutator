@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using HttpValuesMutator.Attributes;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 
@@ -20,6 +24,34 @@ namespace HttpValuesMutator
 
         public void OnActionExecuted(ActionExecutedContext context)
         {
+            var attributes = ((ControllerActionDescriptor)context.ActionDescriptor).MethodInfo.CustomAttributes;
+            var mutationAttribute = attributes.FirstOrDefault(a => a.AttributeType.Name == nameof(MutateHttpBodyAttribute));
+            if (mutationAttribute == null)
+            {
+                return;
+            };
+
+            foreach (var mutationType in mutationAttribute.NamedArguments)
+            {
+                switch (mutationType.MemberName)
+                {
+                    case nameof(MutateHttpBodyAttribute.IncomingType):
+                        if (((Type)mutationType.TypedValue.Value).Name != typeof(TPreMutate).Name)
+                        {
+                            return;
+                        }
+                        break;
+                    case nameof(MutateHttpBodyAttribute.OutgoingType):
+                        if (((Type)mutationType.TypedValue.Value).Name != typeof(TPostMutate).Name)
+                        {
+                            return;
+                        }
+                        break;
+                    default:
+                        return;
+                }
+            }
+
             var resultValue = context.Result as ObjectResult;
             var valueAsJObject = JObject.FromObject(resultValue.Value);
 
@@ -40,6 +72,34 @@ namespace HttpValuesMutator
 
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
+            var attributes = ((ControllerActionDescriptor)context.ActionDescriptor).MethodInfo.CustomAttributes;
+            var mutationAttribute = attributes.FirstOrDefault(a => a.AttributeType.Name == nameof(MutateHttpBodyAttribute));
+            if (mutationAttribute == null)
+            {
+                return;
+            };
+
+            foreach (var mutationType in mutationAttribute.NamedArguments)
+            {
+                switch (mutationType.MemberName)
+                {
+                    case nameof(MutateHttpBodyAttribute.IncomingType):
+                        if (((Type)mutationType.TypedValue.Value).Name != typeof(TPreMutate).Name)
+                        {
+                            return;
+                        }
+                        break;
+                    case nameof(MutateHttpBodyAttribute.OutgoingType):
+                        if (((Type)mutationType.TypedValue.Value).Name != typeof(TPostMutate).Name)
+                        {
+                            return;
+                        }
+                        break;
+                    default:
+                        return;
+                }
+            }
+
             var pathArgs = context.RouteData.Values;
             foreach (var pathArg in pathArgs)
             {

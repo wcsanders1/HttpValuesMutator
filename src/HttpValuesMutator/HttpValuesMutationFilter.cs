@@ -40,6 +40,19 @@ namespace HttpValuesMutator
 
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
+            var pathArgs = context.RouteData.Values;
+            foreach (var pathArg in pathArgs)
+            {
+                var propertyName = pathArg.Key;
+                if (PropertiesToMutate.Contains(propertyName))
+                {
+                    var incomingVal = (TPreMutate)pathArg.Value;
+                    var mutator = HttpBodyMutatorConfiguration<TPreMutate, TPostMutate>.GetRequestMutator(propertyName);
+                    var mutatedVal = mutator(incomingVal);
+                    context.RouteData.Values[propertyName] = mutatedVal;
+                }
+            }
+
             var httpContext = context.HttpContext;
             var originalBody = new StreamReader(httpContext.Request.Body).ReadToEnd();
             var bodyAsJObject = JObject.Parse(originalBody);

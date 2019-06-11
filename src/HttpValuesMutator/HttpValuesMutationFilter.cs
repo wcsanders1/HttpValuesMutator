@@ -24,6 +24,8 @@ namespace HttpValuesMutator
 
         public void OnActionExecuted(ActionExecutedContext context)
         {
+            Console.WriteLine("OnActionExecuted");
+
             var attributes = ((ControllerActionDescriptor)context.ActionDescriptor).MethodInfo.CustomAttributes;
             var mutationAttribute = attributes.FirstOrDefault(a => a.AttributeType.Name == nameof(MutateHttpBodyAttribute));
             if (mutationAttribute == null)
@@ -72,6 +74,8 @@ namespace HttpValuesMutator
 
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
+            Console.WriteLine("OnResourceExecuting");
+
             var attributes = ((ControllerActionDescriptor)context.ActionDescriptor).MethodInfo.CustomAttributes;
             var mutationAttribute = attributes.FirstOrDefault(a => a.AttributeType.Name == nameof(MutateHttpBodyAttribute));
             if (mutationAttribute == null)
@@ -137,9 +141,13 @@ namespace HttpValuesMutator
         }
 
         public void OnActionExecuting(ActionExecutingContext context)
-        {}
+        {
+            Console.WriteLine("OnActionExecuting");
+        }
 
         public void OnResourceExecuted(ResourceExecutedContext context)
-        {}
+        {
+            Console.WriteLine("OnResourceExecuted");
+        }
     }
 }

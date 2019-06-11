@@ -1,12 +1,13 @@
-﻿using System;
+﻿using HttpValuesMutator.Models;
+using System;
 using System.Collections.Generic;
 
 namespace HttpValuesMutator
 {
     public static class HttpBodyMutatorConfiguration<TPreMutate, TPostMutate>
     {
-        private static Dictionary<string, MutationObject> Mutators { get; set; } =
-            new Dictionary<string, MutationObject>();
+        private static Dictionary<string, MutationObject<TPreMutate, TPostMutate>> Mutators { get; set; } =
+            new Dictionary<string, MutationObject<TPreMutate, TPostMutate>>(StringComparer.InvariantCultureIgnoreCase);
 
         private static HashSet<string> PropertiesToMutate { get; set; } =
             new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
@@ -14,7 +15,7 @@ namespace HttpValuesMutator
         public static void SetMutator(string properyName, Func<TPreMutate, TPostMutate> onRequest,
             Func<TPostMutate, TPreMutate> onResponse)
         {
-            var mutationObj = new MutationObject
+            var mutationObj = new MutationObject<TPreMutate, TPostMutate>
             {
                 OnRequest = onRequest,
                 OnResponse = onResponse
@@ -22,6 +23,7 @@ namespace HttpValuesMutator
 
             if (!Mutators.ContainsKey(properyName))
             {
+                PropertiesToMutate.Add(properyName);
                 Mutators.Add(properyName, mutationObj);
 
                 return;
@@ -30,7 +32,7 @@ namespace HttpValuesMutator
             Mutators[properyName] = mutationObj;
         }
 
-        public static HashSet<string> GetPropertiesToMutate()
+        internal static HashSet<string> GetPropertiesToMutate()
         {
             return PropertiesToMutate;
         }
@@ -53,12 +55,6 @@ namespace HttpValuesMutator
             }
 
             return mutator.OnResponse;
-        }
-
-        private class MutationObject
-        {
-            public Func<TPreMutate, TPostMutate> OnRequest { get; set; }
-            public Func<TPostMutate, TPreMutate> OnResponse { get; set; }
         }
     }
 }
